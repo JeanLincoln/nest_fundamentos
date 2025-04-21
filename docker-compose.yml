@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: postgres:13
+    container_name: nest_fundamentos
+    restart: always
+    ports:
+      - 5432:5432
+    env_file:
+      - .env
+    volumes:
+      - postgres:/var/lib/postgresql/data
+
+  # api:
+  #   image: template_node
+  #   container_name: nest_fundamentos-api
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   restart: always
+  #   ports:
+  #     - 3001:3001
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     - postgres
+
+volumes:
+  postgres:
+    name: nest-fundamentos-postgres-volume
