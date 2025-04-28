@@ -25,12 +25,12 @@ export class UserController {
 
   @Get()
   async findAll() {
-    return { users: [] };
+    return this.userService.findAll();
   }
 
   @Get(':id')
   async findById(@Param('id', ParseIntPipe) id: number) {
-    return { user: {}, id };
+    return this.userService.findById(id);
   }
 
   @Put(':id')
@@ -38,7 +38,7 @@ export class UserController {
     @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdatePutUserDTO,
   ) {
-    return { method: 'PUT', body, id };
+    return this.userService.update(id, body);
   }
 
   @Patch(':id')
@@ -46,11 +46,11 @@ export class UserController {
     @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdatePatchUserDTO,
   ) {
-    return { method: 'PATCH', body, id };
+    return this.userService.updatePartial(id, body);
   }
 
   @Delete(':id')
   async delete(@Param('id', ParseIntPipe) id: number) {
-    return { id };
+    return this.userService.delete(id);
   }
 }
