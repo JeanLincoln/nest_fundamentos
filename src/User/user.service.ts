@@ -17,6 +17,8 @@ export class UserService {
   }
 
   async findById(id: number) {
+    await this.checkIfUserExists(id);
+
     const user = await this.prisma.user.findUnique({ where: { id } });
 
     if (!user) {
@@ -27,11 +29,7 @@ export class UserService {
   }
 
   async update(id: number, data: UpdatePutUserDTO) {
-    const user = await this.prisma.user.findUnique({ where: { id } });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    await this.checkIfUserExists(id);
 
     const formattedData = Object.entries(data).reduce((acc, [key, value]) => {
       acc[key] = !value ? null : value;
@@ -42,22 +40,22 @@ export class UserService {
   }
 
   async updatePartial(id: number, data: UpdatePatchUserDTO) {
-    const user = await this.prisma.user.findUnique({ where: { id } });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    await this.checkIfUserExists(id);
 
     return this.prisma.user.update({ where: { id }, data });
   }
 
   async delete(id: number) {
-    const user = await this.prisma.user.findUnique({ where: { id } });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    await this.checkIfUserExists(id);
 
     return this.prisma.user.delete({ where: { id } });
+  }
+
+  async checkIfUserExists(id: number) {
+    const count = await this.prisma.user.count({ where: { id } });
+
+    if (!count) {
+      throw new NotFoundException('User not found');
+    }
   }
 }
