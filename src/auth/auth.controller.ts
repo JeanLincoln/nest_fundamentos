@@ -1,9 +1,12 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { AuthLoginDto } from './dto/auth.login.dto';
 import { AuthRegisterDto } from './dto/auth.register.dto';
 import { AuthForgetDto } from './dto/auth.forget.dto';
 import { AuthResetDto } from './dto/auth.reset.dto';
 import { AuthService } from './auth.service';
+import { AuthGuard } from 'src/guards/auth.guard';
+import { User } from 'src/decorators/user.decorator';
+import { User as UserType } from 'generated/prisma';
 
 @Controller('auth')
 export class AuthController {
@@ -27,5 +30,13 @@ export class AuthController {
   @Post('reset')
   async reset(@Body() { password, token }: AuthResetDto) {
     return this.authService.reset(password, token);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('test')
+  async test(@User() user: UserType | Record<string, string>) {
+    return {
+      user,
+    };
   }
 }

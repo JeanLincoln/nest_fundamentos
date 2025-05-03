@@ -33,12 +33,12 @@ export class AuthService {
   }
 
   async verifyToken(token: string) {
-    try {
-      await this.jwtService.verify(token);
-      return true;
-    } catch (error) {
-      throw new UnauthorizedException(error);
-    }
+    const { id } = await this.jwtService.verify(token);
+    return await this.prisma.user.findUnique({
+      where: {
+        id,
+      },
+    });
   }
 
   async login(email: string, password: string) {
