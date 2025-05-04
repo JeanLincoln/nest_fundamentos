@@ -1,10 +1,12 @@
 import {
   IsDateString,
   IsEmail,
+  IsEnum,
   IsOptional,
   IsString,
   IsStrongPassword,
 } from 'class-validator';
+import { ROLES_ENUM } from 'src/enums/roles.enum';
 
 export class CreateUserDTO {
   @IsString()
@@ -25,4 +27,8 @@ export class CreateUserDTO {
   @IsDateString()
   @IsOptional()
   birthAt: Date;
+
+  @IsEnum(ROLES_ENUM)
+  @IsOptional()
+  role: ROLES_ENUM;
 }

@@ -14,14 +14,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum ROLES_ENUM {
+  ADMIN
+  USER
+}
+
 model User {
-  id        Int       @id @default(autoincrement())
-  name      String    @db.VarChar(63)
-  email     String    @db.VarChar(127)
-  password  String    @db.VarChar(127)
-  birthAt   DateTime? @db.Date
-  createdAt DateTime  @default(now()) @db.Timestamp(0)
-  updatedAt DateTime  @default(now()) @updatedAt @db.Timestamp(0)
+  id        Int        @id @default(autoincrement())
+  name      String     @db.VarChar(63)
+  email     String     @db.VarChar(127)
+  password  String     @db.VarChar(127)
+  birthAt   DateTime?  @db.Date
+  role      ROLES_ENUM @default(USER)
+  createdAt DateTime   @default(now()) @db.Timestamp(0)
+  updatedAt DateTime   @default(now()) @updatedAt @db.Timestamp(0)
 
   @@map("users")
 }
