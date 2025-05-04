@@ -6,7 +6,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { PrismaClient, User } from 'generated/prisma';
 import type { AuthRegisterDto } from './dto/auth.register.dto';
-
+import * as bcrypt from 'bcrypt';
 @Injectable()
 export class AuthService {
   constructor(
@@ -45,11 +45,12 @@ export class AuthService {
     const user = await this.prisma.user.findFirst({
       where: {
         email,
-        password,
       },
     });
 
     if (!user) throw new UnauthorizedException('Email e/ou senha incorretos');
+
+    await this.#validatePassword(password, user.password);
 
     return this.createToken(user);
   }
@@ -91,5 +92,17 @@ export class AuthService {
     });
 
     return this.createToken(user);
+  }
+
+  async #validatePassword(password: string, userPassword: string) {
+    const passwordMatch = await bcrypt.compare(password, userPassword);
+
+    console.log(passwordMatch, password, userPassword);
+
+    if (!passwordMatch) {
+      throw new UnauthorizedException('Email e/ou senha incorretos');
+    }
+
+    return true;
   }
 }
