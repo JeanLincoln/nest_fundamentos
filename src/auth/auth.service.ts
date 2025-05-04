@@ -97,8 +97,6 @@ export class AuthService {
   async #validatePassword(password: string, userPassword: string) {
     const passwordMatch = await bcrypt.compare(password, userPassword);
 
-    console.log(passwordMatch, password, userPassword);
-
     if (!passwordMatch) {
       throw new UnauthorizedException('Email e/ou senha incorretos');
     }
