@@ -3,6 +3,7 @@ import {
   Controller,
   Post,
   UploadedFile,
+  UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -14,7 +15,11 @@ import { AuthService } from './auth.service';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { User } from 'src/decorators/user.decorator';
 import { User as UserType } from 'generated/prisma';
-import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  FileFieldsInterceptor,
+  FileInterceptor,
+  FilesInterceptor,
+} from '@nestjs/platform-express';
 import { join } from 'path';
 import { FileService } from 'src/file/file.service';
 
@@ -62,5 +67,30 @@ export class AuthController {
     return {
       message: 'Photo uploaded successfully',
     };
+  }
+
+  @UseInterceptors(FilesInterceptor('files'))
+  @UseGuards(AuthGuard)
+  @Post('files')
+  async uploadFiles(@UploadedFiles() files: Express.Multer.File[]) {
+    return files;
+  }
+
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'photo', maxCount: 1 },
+      { name: 'documents', maxCount: 10 },
+    ]),
+  )
+  @UseGuards(AuthGuard)
+  @Post('files-fields')
+  async uploadfilesFields(
+    @UploadedFiles()
+    files: {
+      photo: Express.Multer.File[];
+      documents: Express.Multer.File[];
+    },
+  ) {
+    return files;
   }
 }
