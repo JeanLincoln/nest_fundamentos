@@ -1,6 +1,9 @@
 import {
   Body,
   Controller,
+  FileTypeValidator,
+  MaxFileSizeValidator,
+  ParseFilePipe,
   Post,
   UploadedFile,
   UploadedFiles,
@@ -55,7 +58,15 @@ export class AuthController {
   @Post('photo')
   async uploadPhoto(
     @User() user: UserType | Record<string, string>,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new FileTypeValidator({ fileType: 'image/png' }),
+          new MaxFileSizeValidator({ maxSize: 1000 }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
   ) {
     const fileExtension = file.originalname.split('.').pop();
     const fileName = `${user.id}.${fileExtension}`;
@@ -66,6 +77,7 @@ export class AuthController {
 
     return {
       message: 'Photo uploaded successfully',
+      file,
     };
   }
 

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -7,11 +8,13 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaClient, User } from 'generated/prisma';
 import type { AuthRegisterDto } from './dto/auth.register.dto';
 import * as bcrypt from 'bcrypt';
+import { MailerService } from '@nestjs-modules/mailer';
 @Injectable()
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaClient,
+    private readonly mailer: MailerService,
   ) {}
 
   async createToken(user: User) {
@@ -64,26 +67,58 @@ export class AuthService {
 
     if (!user) throw new NotFoundException('Email não encontrado');
 
-    // TODO: ENVIAR EMAIL....
+    const token = this.jwtService.sign(
+      {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      },
+      {
+        expiresIn: '30 minutes',
+        subject: user.id.toString(),
+        issuer: 'forget',
+        audience: 'users',
+      },
+    );
+
+    await this.mailer.sendMail({
+      to: `teste@dev${Math.random().toString(36).substring(2)}.com.br`,
+      subject: 'Recuperação de senha',
+      template: 'forget',
+      context: {
+        name: user.name,
+        token,
+      },
+    });
 
     return true;
   }
 
   async reset(password: string, token: string) {
-    // TODO: VALIDAR TOKEN....
+    try {
+      const { id } = await this.jwtService.verify(token, {
+        issuer: 'forget',
+        audience: 'users',
+      });
 
-    const id = 0; // PASSWORD VIRÁ NO TOKEN
+      if (isNaN(Number(id))) throw new UnauthorizedException('Token inválido');
 
-    const user = await this.prisma.user.update({
-      where: {
-        id,
-      },
-      data: {
-        password,
-      },
-    });
+      const salt = bcrypt.genSaltSync();
+      const hashedPassword = bcrypt.hashSync(password, salt);
 
-    return this.createToken(user);
+      const user = await this.prisma.user.update({
+        where: {
+          id,
+        },
+        data: {
+          password: hashedPassword,
+        },
+      });
+
+      return this.createToken(user);
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
   }
 
   async register(body: AuthRegisterDto) {
